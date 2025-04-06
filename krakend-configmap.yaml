@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: krakend-config
+  namespace: default
+data:
+  krakend.json: |
+    {
+      "version": 3,
+      "name": "KrakenD API Gateway",
+      "port": 8081,
+      "endpoints": [
+        {
+          "endpoint": "/auth/signup",
+          "method": "POST",
+          "input_headers": [ "Content-Type"],
+          "backend": [
+            {
+              "host": ["http://content-moderation-service"],
+              "sd": "static",
+              "url_pattern": "/auth/signup",
+              "method": "POST",
+              "encoding": "json"
+            }
+          ]
+        },
+        {
+          "endpoint": "/auth/login",
+          "method": "POST",
+          "input_headers": ["Content-Type"],
+          "backend": [
+            {
+              "host": ["http://content-moderation-service"],
+              "sd": "static",
+              "url_pattern": "/auth/login",
+              "method": "POST",
+              "encoding": "json"
+            }
+          ]
+        },
+        {
+          "endpoint": "/posts",
+          "method": "GET",
+          "input_headers": ["Authorization", "Content-Type"],
+          "backend": [
+            {
+              "host": ["http://content-moderation-service"],
+              "sd": "static",
+              "url_pattern": "/posts",
+              "method": "GET",
+              "encoding": "json",
+              "extra_config": {
+                "proxy": {
+                  "response": {
+                    "decoder": {
+                      "name": "json",
+                      "config": {
+                        "collection": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "endpoint": "/comment",
+          "method": "POST",
+          "input_headers": ["Authorization", "Content-Type"],
+          "backend": [
+            {
+              "host": ["http://content-moderation-service"],
+              "sd": "static",
+              "url_pattern": "/comment",
+              "method": "POST",
+              "encoding": "json"
+            }
+          ]
+        },
+        {
+          "endpoint": "/review",
+          "method": "POST",
+          "input_headers": ["Authorization", "Content-Type"],
+          "backend": [
+            {
+              "host": ["http://content-moderation-service"],
+              "sd": "static",
+              "url_pattern": "/review",
+              "method": "POST",
+              "encoding": "json"
+            }
+          ]
+        },
+        {
+          "endpoint": "/moderation",
+          "method": "POST",
+          "input_headers": ["Authorization", "Content-Type"],
+          "backend": [
+            {
+              "host": ["http://content-moderation-service"],
+              "sd": "static",
+              "url_pattern": "/moderation",
+              "method": "POST",
+              "encoding": "json"
+            }
+          ]
+        },
+        {
+          "endpoint": "/notify",
+          "method": "GET",
+          "input_headers": ["Authorization", "Content-Type"],
+          "backend": [
+            {
+              "host": ["http://notf-service"],
+              "sd": "static",
+              "url_pattern": "/notify",
+              "method": "GET",
+              "encoding": "json",
+              "extra_config": {
+                "proxy": {
+                  "response": {
+                    "decoder": {
+                      "name": "json",
+                      "config": {
+                        "collection": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "extra_config": {
+        "http": {
+          "timeout": "10s"
+        },
+        "rate_limit": {
+          "strategy": "ip",
+          "limit": 200,
+          "burst": 50,
+          "period": "1m"
+        },
+        "proxy": {
+          "disable_error_status_check": true
+        }
+      }
+    }

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krakend-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: krakend
+  template:
+    metadata:
+      labels:
+        app: krakend
+    spec:
+      containers:
+        - name: krakend
+          image: 9874694577/krakend:${{ github.sha }}  # Use the Docker image you've pushed
+          ports:
+            - containerPort: 8081  # Port where KrakenD will run
+          volumeMounts:
+            - name: krakend-config
+              mountPath: /etc/krakend/krakend.json
+              subPath: krakend.json
+              readOnly: true
+      volumes:
+        - name: krakend-config
+          configMap:
+            name: krakend-config
+            items:
+              - key: krakend.json
+                path: krakend.json
